@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+
+    <script type="text/javascript">
+    </script>
+  </head>
+  <body>
+    <div id="testGraph" width="800px" height="600px"
+      style="width: 800px; height: 600px; "
+    >
+
+    </div>
+    <script src="graph-lib.js" charset="utf-8"></script>
+    <script type="text/javascript">
+      let g = new Graph("testGraph",{
+        'title': {
+            'text': 'Main title',
+            'font': '20px Arial',
+            'color': '#456'
+        },
+        'subtitle': {
+          'text': 'This is subtitle for the plot',
+          'font': '14px Arial',
+          'color': '#654'
+        },
+        'axis_x': {
+          'title': {
+            'text': 'This is X axis subscription',
+            'font': '14px Arial',
+            'color': '#654'
+          }
+        },
+        'axis_y': {
+          'title': {
+            'text': 'This is Y axis subscription',
+            'font': '14px Arial',
+            'color': '#654'
+          }
+        },
+        'series' : [
+           {
+            'type': 'linear',
+            'color': '#456',
+            'points': true,
+            'labels': 'values',
+            'width' : 3,
+            'data': [
+              {'x': -10, 'y': -11.4},
+              {'x': 0, 'y': -10},
+              {'x': 20, 'y': -7},
+              {'x': 30, 'y': -1},
+              {'x': 40, 'y': 30},
+              {'x': 50, 'y': 25},
+              {'x': 60, 'y': 14.5},
+              {'x': 70, 'y': 9},
+              {'x': 80, 'y': 3}
+            ]
+          },
+          {
+           'type': 'linear',
+           'color': '#811',
+           'points': true,
+           'labels': 'values',
+           'width' : 3,
+           'data': [
+             {'x': -5, 'y': 20},
+             {'x': 5, 'y': 12},
+             {'x': 20, 'y': 0},
+             {'x': 30, 'y': -5},
+             {'x': 40, 'y': -7},
+             {'x': 50, 'y': 12},
+             {'x': 60, 'y': 30},
+             {'x': 70, 'y': 31},
+             {'x': 80, 'y': 20}
+           ]
+         }
+
+        ]
+      });
+      g.render();
+    </script>
+  </body>
+</html>

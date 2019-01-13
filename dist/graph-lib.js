@@ -11,7 +11,7 @@ var Graph = (function () {
      * constructor - create a title
      *
      * @param  {Element} canvas - parent canvas
-     * @param  {array} title    - title info
+     * @param  {object} title    - title info
      * @param  {string} direction - direction of the title - x or y
      */
     constructor(canvas, title, direction = 'x') {
@@ -79,9 +79,9 @@ var Graph = (function () {
      * constructor - create an axis x
      *
      * @param  {Element} canvas parent canvas element
-     * @param  {array} axis     axis parameters
+     * @param  {object} axis     axis parameters
      * @param  {string} direction axis direction - x or y
-     * @param  {array} zero coords of (0,0)
+     * @param  {object} zero coords of (0,0)
      */
     constructor(canvas, axis, direction, zero) {
       this.canvas = canvas;
@@ -142,15 +142,16 @@ var Graph = (function () {
      *
      * @param  {type} series series of plots
      */
-    constructor(series) {
+    constructor(series, x_continuous) {
       this.series = series;
+      this.x_continuous = x_continuous;
     }
 
 
     /**
      * getRanges - get ranges for the serie of plots
      *
-     * @return {array}  mix-max values for x-y entire the series
+     * @return {object}  mix-max values for x-y entire the series
      */
     getRanges() {
       let ranges = this.series.map(
@@ -159,9 +160,9 @@ var Graph = (function () {
 
       return {
         'minx': Math.min(...ranges.map(point => point.minx)),
-        'maxx': Math.min(...ranges.map(point => point.maxx)),
+        'maxx': Math.max(...ranges.map(point => point.maxx)),
         'miny': Math.min(...ranges.map(point => point.miny)),
-        'maxy': Math.min(...ranges.map(point => point.maxy))
+        'maxy': Math.max(...ranges.map(point => point.maxy))
       }
     }
 
@@ -169,36 +170,20 @@ var Graph = (function () {
     /**
      * calcRange - calculate min-max values on x-y for the plot
      *
-     * @param  {array} plot plot description with data
-     * @return {array}      min-max values for x-y
+     * @param  {object} plot plot description with data
+     * @return {object}      min-max values for x-y
      */
     calcRange(plot) {
-      if (plot.type == "linear") {
         return {
-          'minx': Math.min(...plot.data.map(point => point.x)),
-          'maxx': Math.max(...plot.data.map(point => point.x)),
+          'minx': (this.x_continuous ?
+            Math.min(...plot.data.map(point => point.x)) : 0
+          ),
+          'maxx': (this.x_continuous ?
+            Math.max(...plot.data.map(point => point.x)) : plot.data.length
+          ),
           'miny': Math.min(...plot.data.map(point => point.y)),
           'maxy': Math.max(...plot.data.map(point => point.y))
         }
-      }
-    }
-
-
-  }
-
-  class DataPoint {
-    constructor(x, y, data_x, data_y, label) {
-      this.x = x;
-      this.y = y;
-      this.data_x = data_x;
-      this.data_y = data_y;
-      this.label = label;
-    }
-  }
-
-  class AbstractPlot {
-    constructor() {
-      
     }
   }
 
@@ -208,8 +193,8 @@ var Graph = (function () {
      *
      * @param  {number} value data value
      * @return {number}       x-coord of the point
-     * @param  {array} range mix-max values of source scale
-     * @param  {array} limits min-max values of destination scale
+     * @param  {object} range mix-max values of source scale
+     * @param  {object} limits min-max values of destination scale
      */
     static convertX(value, range, limits) {
       let oldRange = range.maxx - range.minx;
@@ -222,8 +207,8 @@ var Graph = (function () {
      * convertY - convert y value into canvas coords
      *
      * @param  {number} value data value
-     * @param  {array} range mix-max values of source scale
-     * @param  {array} limits min-max values of destination scale
+     * @param  {object} range mix-max values of source scale
+     * @param  {object} limits min-max values of destination scale
      * @return {number}       y-coord of the point
      */
     static convertY(value, range, limits) {
@@ -233,23 +218,129 @@ var Graph = (function () {
     }
   }
 
+  class DataPoint {
+    constructor(x, y, data_x, data_y, label, color) {
+      this.x = x;
+      this.y = y;
+      this.data_x = data_x;
+      this.data_y = data_y;
+      this.label = label;
+      this.color = color;
+    }
+  }
+
+  class AbstractPlot {
+    /**
+     * constructor - create a linear plot
+     *
+     * @param  {Element} canvas parent canvas element
+     * @param  {object} plot   array of data points
+     * @param  {object} range common range for the series of plots
+     * @param  {object} limits common coords limits for the series of plots
+     * @param  {bool} x_continuous is x-axis continuous (true) or categorical (false)
+     * @param  {bool} y_continuous is y-axis continuous (true) or categorical (false)
+     */
+    constructor(canvas, plot, range, limits, x_continuous, y_continuous) {
+      this.canvas = canvas;
+      this.data   = plot.data;
+      this.params = plot.params;
+      this.range  = range;
+      this.limits = limits;
+      this.x_continuous = x_continuous;
+      this.y_continuous = y_continuous;
+    }
+
+    /**
+     * convertData - convert data into plot coords
+     *
+     * @return {array}  array of points in plot's coord system
+     */
+    convertData() {
+
+      return this.data.map(point => new DataPoint(
+        Converter.convertX(
+          (this.x_continuous ? point.x : this.data.map(p => p.x).indexOf(point.x) + 1),
+          this.range, this.limits
+        ),
+        Converter.convertY(point.y, this.range, this.limits),
+        point.x,
+        point.y,
+        (point.label ? point.label : ''),
+        (point.color ? point.color : '#000')
+      ));
+    }
+
+    /**
+     * addDataPoints - add points onto the line
+     *
+     * @return {void}
+     */
+    addDataPoints() {
+      this.points.map(point => {
+        this.ctx.beginPath();
+        this.ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
+        this.ctx.fillStyle = ( this.params.points.color ? this.params.points.color : "#000" );
+        this.ctx.fill();
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeStyle = ( this.params.points.color ? this.params.points.color : "#000" );
+        this.ctx.stroke();
+      });
+    }
+
+
+    /**
+     * addDataValues - add subscriptions to the datapoints - values (x,y)
+     *
+     * @return {void}
+     */
+    addDataValues() {
+      this.points.map(point => {
+        this.ctx.textAlign = "left";
+        this.ctx.fillStyle = ( this.params.labels.color ? this.params.labels.color : "#000" );
+        this.ctx.font = (this.params.labels.font ? this.params.labels.font : '');
+        if (this.params.labels.type == "values") {
+          this.ctx.fillText(
+            `(${point.data_x},${point.data_y})`,
+            point.x+10,
+            point.y
+          );
+        } else if (this.params.labels.type == "x") {
+          this.ctx.fillText(
+            point.data_x,
+            point.x+10,
+            point.y
+          );
+        } else if (this.params.labels.type == "y") {
+          this.ctx.fillText(
+            point.data_y,
+            point.x+10,
+            point.y
+          );
+        } else if (this.params.labels.type == "label") {
+          this.ctx.fillText(
+            point.label,
+            point.x+10,
+            point.y
+          );
+        }
+      });
+    }
+  }
+
   class Linear extends AbstractPlot {
 
     /**
      * constructor - create a linear plot
      *
      * @param  {Element} canvas parent canvas element
-     * @param  {array} data   array of data points
-     * @param  {array} range common range for the series of plots
-     * @param  {array} limits common coords limits for the series of plots
+     * @param  {object} plot   array of data points
+     * @param  {object} range common range for the series of plots
+     * @param  {object} limits common coords limits for the series of plots
+     * @param  {bool} x_continuous is x-axis continuous (true) or categorical (false)
+     * @param  {bool} y_continuous is y-axis continuous (true) or categorical (false)
      */
-    constructor(canvas, params, range, limits) {
-      super();
-      this.canvas = canvas;
-      this.data   = params.data;
-      this.params = params;
-      this.range  = range;
-      this.limits = limits;
+    constructor(canvas, plot, range, limits, x_continuous, y_continuous) {
+      super(canvas, plot, range, limits, x_continuous, y_continuous);
     }
 
     /**
@@ -268,7 +359,7 @@ var Graph = (function () {
         this.addDataPoints();
       }
 
-      if (this.params.labels && this.params.labels == "values") {
+      if (this.params.labels) {
         this.addDataValues();
       }
 
@@ -276,57 +367,6 @@ var Graph = (function () {
     }
 
 
-    /**
-     * convertData - convert data into plot coords
-     *
-     * @return {array}  array of points in plot's coord system
-     */
-    convertData() {
-
-      return this.data.map(point => new DataPoint(
-        Converter.convertX(point.x, this.range, this.limits),
-        Converter.convertY(point.y, this.range, this.limits),
-        point.x,
-        point.y,
-        point.label
-      ));
-
-    }
-
-    /**
-     * addDataPoints - add points onto the line
-     *
-     * @return {void}
-     */
-    addDataPoints() {
-      this.points.map(point => {
-        this.ctx.beginPath();
-        this.ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
-        this.ctx.fillStyle = ( this.params.color ? this.params.color : "#000" );
-        this.ctx.fill();
-        this.ctx.lineWidth = 1;
-        this.ctx.strokeStyle = ( this.params.color ? this.params.color : "#000" );
-        this.ctx.stroke();
-      });
-    }
-
-
-    /**
-     * addDataValues - add subscriptions to the datapoints - values (x,y)
-     *
-     * @return {void}
-     */
-    addDataValues() {
-      this.points.map(point => {
-        this.ctx.textAlign = "left";
-        this.ctx.fillStyle = ( this.params.color ? this.params.color : "#000" );
-        this.ctx.fillText(
-          `(${point.data_x},${point.data_y})`,
-          point.x+10,
-          point.y
-        );
-      });
-    }
 
 
     /**
@@ -340,10 +380,138 @@ var Graph = (function () {
       for (let i = 1; i < this.points.length; i++) {
         this.ctx.lineTo(this.points[i].x, this.points[i].y);
       }
-      this.ctx.strokeStyle = ( this.params.color ? this.params.color : "#000" );
-      this.ctx.lineWidth = (this.params.width ? this.params.width : 1);
+      this.ctx.strokeStyle = ( this.params.line.color ? this.params.line.color : "#000" );
+      this.ctx.lineWidth = (this.params.line.width ? this.params.line.width : 1);
       this.ctx.stroke();
     }
+
+  }
+
+  class BarPlot extends AbstractPlot {
+    /**
+     * constructor - create a linear plot
+     *
+     * @param  {Element} canvas parent canvas element
+     * @param  {object} plot   array of data points
+     * @param  {object} range common range for the series of plots
+     * @param  {object} limits common coords limits for the series of plots
+     * @param  {bool} x_continuous is x-axis continuous (true) or categorical (false)
+     * @param  {bool} y_continuous is y-axis continuous (true) or categorical (false)
+     * @param  {object} options for all bar plots in series
+     */
+     constructor(canvas, plot, range, limits, x_continuous, y_continuous, global_options) {
+       super(canvas, plot, range, limits, x_continuous, y_continuous);
+
+       this.limits = {...limits};
+       this.options = global_options;
+     }
+
+     /**
+      * render - render a bar plot
+      *
+      * @return {type}  description
+      */
+     render() {
+       this.correctLimits();
+
+       this.points = this.convertData();
+
+       this.ctx = this.canvas.getContext("2d");
+
+       this.plotBars();
+
+       if (this.params.points) {
+         this.addDataPoints();
+       }
+
+       if (this.params.labels) {
+         this.addDataValues();
+       }
+
+       return this;
+     }
+
+
+     /**
+      * plotBars - draw bars
+      *
+      * @return {void}
+      */
+     plotBars() {
+       this.barWidth = this.calcBarWidth();
+
+       this.points.map(
+         point => this.drawBar(point)
+       );
+     }
+
+
+     /**
+      * drawBar - draw a single bar
+      *
+      * @param  {DataPoint} point point to draw a bar
+      * @return {void}
+      */
+     drawBar(point) {
+        if (this.params.bars.type == 'lines') {
+          this.ctx.beginPath();
+          this.ctx.strokeStyle = ( this.params.line.color ? this.params.line.color : "#000" );
+          this.ctx.lineWidth = (this.params.line.width ? this.params.line.width : 1);
+          this.ctx.moveTo(point.x, Converter.convertY(0, this.range, this.limits));
+          this.ctx.lineTo(point.x, point.y);
+          this.ctx.stroke();
+        } else {
+          this.ctx.beginPath();
+          this.ctx.strokeStyle = (this.params.bars.outline && this.params.bars.outline.color ? this.params.bars.outline.color : "#000" );
+          this.ctx.lineWidth = (this.params.bars.outline && this.params.bars.outline.width ? this.params.bars.outline.width : 1 );
+          this.ctx.moveTo(point.x - this.barWidth / 2, Converter.convertY(0, this.range, this.limits));
+          this.ctx.lineTo(point.x + this.barWidth / 2, Converter.convertY(0, this.range, this.limits));
+          this.ctx.lineTo(point.x + this.barWidth / 2, point.y);
+          this.ctx.lineTo(point.x - this.barWidth / 2, point.y);
+          this.ctx.lineTo(point.x - this.barWidth / 2, Converter.convertY(0, this.range, this.limits));
+          this.ctx.stroke();
+          if (this.params.bars.fill && this.params.bars.fill.type && this.params.bars.fill.type == 'fixed') {
+            this.ctx.fillStyle = (this.params.bars.fill.color ? this.params.bars.fill.color : "#fff");
+          } else {
+            this.ctx.fillStyle = point.color;
+          }
+          this.ctx.fill();
+        }
+     }
+
+
+     /**
+      * calcBarWidth - calculate width of bars
+      *
+      * @return {number}  bar width
+      */
+     calcBarWidth() {
+       if (this.options.width) {
+         return this.options.width;
+       } else if (this.params.bars.width) {
+         return this.params.bars.width;
+       } else {
+         return (this.limits.maxx - this.limits.minx) / this.data.length - (this.params.bars.gap ? this.params.bars.gap : 0)
+       }
+     }
+
+
+     /**
+      * correctLimits - correct given limits according bars position
+      *
+      * @return {void}
+      */
+     correctLimits() {
+       if (this.options.position == 'separated') {
+         let groupWidth = (this.limits.maxx - this.limits.minx) / this.options.count;
+         this.limits.minx = this.limits.minx + groupWidth * this.options.index;
+         this.limits.maxx = this.limits.minx + groupWidth;
+       } if (this.options.position == 'together') {
+         let barWidth = this.calcBarWidth();
+         this.limits.maxx = this.limits.maxx - barWidth * (this.options.count - this.options.index);
+         this.limits.minx = this.limits.minx + barWidth * this.options.index - this.options.count * barWidth ;
+       }
+     }
 
   }
 
@@ -353,15 +521,19 @@ var Graph = (function () {
      * constructor - create a plot on the canvas
      *
      * @param  {Element} canvas  parent canvas element
-     * @param  {array} series collection of plots descriptions
-     * @param  {array} axis_x x-axis parameters
-     * @param  {array} axis_y y-axis parameters
+     * @param  {object} series collection of plots descriptions
+     * @param  {object} axis_x x-axis parameters
+     * @param  {object} axis_y y-axis parameters
+     * @param  {object} global_options global options for plots
      */
-    constructor(canvas, series, axis_x, axis_y) {
+    constructor(canvas, series, axis_x, axis_y, global_options) {
       this.canvas = canvas;
       this.series = series;
       this.axis_x = axis_x;
       this.axis_y = axis_y;
+      this.x_continuous = this.axis_x.type && this.axis_x.type == "continuous";
+      this.y_continuous = this.axis_y.type && this.axis_y.type == "continuous";
+      this.globalOptions = global_options;
     }
 
 
@@ -371,9 +543,20 @@ var Graph = (function () {
      * @return {Plot}  current instance of the plot
      */
     render() {
+
+      if (this.x_continuous) {
+        // sort series by x - for continues axis
+        this.series.map(plot => this.sortData(plot.data));
+      } else {
+        this.unifyData();
+      }
+
       // calc ranges entire the series
-      this.ranges = new Range(this.series)
-        .getRanges();
+      this.ranges = new Range(
+        this.series,
+        this.x_continuous,
+        this.y_continuous
+      ).getRanges();
 
       // calculate limits
       this.limits = {
@@ -397,13 +580,34 @@ var Graph = (function () {
     /**
      * draw - draw a single plot from the series
      *
-     * @param  {array} plot plot description
+     * @param  {object} plot plot description
      * @return {void}
      */
     draw(plot) {
-      if (plot.type = "linear") {
-        return new Linear(this.canvas, plot, this.ranges, this.limits)
-          .render();
+      if (plot.type == "linear") {
+        return new Linear(
+          this.canvas,
+          plot,
+          this.ranges,
+          this.limits,
+          this.x_continuous,
+          this.y_continuous
+        ).render();
+      } else if (plot.type == "bar") {
+        // add options for several bar plots drawn together
+        let options = this.globalOptions.bars;
+        options.count = this.series.length;
+        options.index = this.series.indexOf(plot);
+
+        return new BarPlot(
+          this.canvas,
+          plot,
+          this.ranges,
+          this.limits,
+          this.x_continuous,
+          this.y_continuous,
+          options
+        ).render();
       }
     }
 
@@ -435,6 +639,69 @@ var Graph = (function () {
         }).render();
       }
     }
+
+
+    /**
+     * sortData - order data in series by x axis
+     * The method changes sourse data of the plot in series
+     *
+     * @param  {array} data data for the plot
+     * @return {void}
+     */
+    sortData(data) {
+      data = data.sort(
+        (a,b) => {
+          return a.x - b.x;
+        }
+      );
+    }
+
+
+    /**
+     * unifyData - make common categorical scales for all plots
+     * in series
+     *
+     * @return {void}
+     */
+    unifyData() {
+      // get common list of categories in all series
+      let xValues = [].concat(...this.series.map(
+        plot => plot.data.map(point => point.x)
+      ));
+
+      // get just unique categories for all series
+      let categories = [ ...new Set(xValues) ];
+
+      // change data adding categories and reordering data in
+      // series 1,2 etc...
+      // ... add categories
+      categories.map(
+        value => {
+          this.series.map(
+            plot => {
+              let x = plot.data.map(point => point.x);
+              if (x.indexOf(value) < 0) {
+                plot.data.push({
+                  'x': value,
+                  'y': 0
+                });
+              }
+            }
+          );
+        }
+      );
+
+      // ... reorder data in series according categories
+      this.series.map(
+        plot => plot.data.sort(
+          (a,b) => {
+            return categories.indexOf(a.x) - categories.indexOf(b.x);
+          }
+        )
+      );
+      // finally: this.series are unified by x
+    }
+
   }
 
   /**
@@ -473,7 +740,7 @@ var Graph = (function () {
     /**
      * addTitle - add a plot's title
      *
-     * @param  {array} title - title parameters
+     * @param  {object} title - title parameters
      * @return {Canvas} - current instance of canvas
      */
     addTitle(title) {
@@ -489,7 +756,7 @@ var Graph = (function () {
     /**
      * addSubTitle - add a subtitle onto the plot
      *
-     * @param  {array} subtitle - plot's subtitle
+     * @param  {object} subtitle - plot's subtitle
      * @return {Canvas} - current instance of canvas
      */
     addSubTitle(subtitle) {
@@ -505,7 +772,7 @@ var Graph = (function () {
     /**
      * addAxisX - add an x-axis onto the plot
      *
-     * @param  {array} axis  x-axis parameters
+     * @param  {object} axis  x-axis parameters
      * @return {Canvas} current instance of canvas
      */
     addAxisX(axis) {
@@ -520,7 +787,7 @@ var Graph = (function () {
     /**
      * addAxisY - add an y-axis onto the plot
      *
-     * @param  {array} axis y-axis parameters
+     * @param  {object} axis y-axis parameters
      * @return {Canvas} current canvas instance
      */
     addAxisY(axis) {
@@ -536,12 +803,12 @@ var Graph = (function () {
     /**
      * addPlot - add a plot onto the canvas
      *
-     * @param  {array} plot_data plot description
+     * @param  {object} plot_data plot description
      * @return {Canvas}          current instance of canvas
      */
-    addPlot(plot_data, axis_x, axis_y) {
+    addPlot(plot_data, axis_x, axis_y, global_options) {
       if (plot_data) {
-        this.plot = new Plot(this.canvas, plot_data, axis_x, axis_y)
+        this.plot = new Plot(this.canvas, plot_data, axis_x, axis_y, global_options)
           .render();
       }
 
@@ -563,9 +830,9 @@ var Graph = (function () {
      * constructor -
      *
      * @param  {string} id   ID of the element to insert plot into
-     * @param  {array} info  Parameters of the plot
+     * @param  {object} info  Parameters of the plot
      */
-    constructor(id, info, direction) {
+    constructor(id, info) {
       this.id = id;
       this.info = info;
     }
@@ -583,9 +850,7 @@ var Graph = (function () {
         .render()
         .addTitle(this.info.title)
         .addSubTitle(this.info.subtitle)
-        // .addAxisX(this.info.axis_x)
-        // .addAxisY(this.info.axis_y)
-        .addPlot(this.info.series, this.info.axis_x, this.info.axis_y);
+        .addPlot(this.info.series, this.info.axis_x, this.info.axis_y, this.info.options);
     }
   }
 

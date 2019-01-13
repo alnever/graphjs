@@ -38,7 +38,7 @@ export class Canvas {
   /**
    * addTitle - add a plot's title
    *
-   * @param  {array} title - title parameters
+   * @param  {object} title - title parameters
    * @return {Canvas} - current instance of canvas
    */
   addTitle(title) {
@@ -54,7 +54,7 @@ export class Canvas {
   /**
    * addSubTitle - add a subtitle onto the plot
    *
-   * @param  {array} subtitle - plot's subtitle
+   * @param  {object} subtitle - plot's subtitle
    * @return {Canvas} - current instance of canvas
    */
   addSubTitle(subtitle) {
@@ -70,7 +70,7 @@ export class Canvas {
   /**
    * addAxisX - add an x-axis onto the plot
    *
-   * @param  {array} axis  x-axis parameters
+   * @param  {object} axis  x-axis parameters
    * @return {Canvas} current instance of canvas
    */
   addAxisX(axis) {
@@ -85,7 +85,7 @@ export class Canvas {
   /**
    * addAxisY - add an y-axis onto the plot
    *
-   * @param  {array} axis y-axis parameters
+   * @param  {object} axis y-axis parameters
    * @return {Canvas} current canvas instance
    */
   addAxisY(axis) {
@@ -101,12 +101,12 @@ export class Canvas {
   /**
    * addPlot - add a plot onto the canvas
    *
-   * @param  {array} plot_data plot description
+   * @param  {object} plot_data plot description
    * @return {Canvas}          current instance of canvas
    */
-  addPlot(plot_data, axis_x, axis_y) {
+  addPlot(plot_data, axis_x, axis_y, global_options) {
     if (plot_data) {
-      this.plot = new Plot(this.canvas, plot_data, axis_x, axis_y)
+      this.plot = new Plot(this.canvas, plot_data, axis_x, axis_y, global_options)
         .render();
     }
 

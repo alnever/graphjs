@@ -10,9 +10,9 @@ export class Axis {
    * constructor - create an axis x
    *
    * @param  {Element} canvas parent canvas element
-   * @param  {array} axis     axis parameters
+   * @param  {object} axis     axis parameters
    * @param  {string} direction axis direction - x or y
-   * @param  {array} zero coords of (0,0)
+   * @param  {object} zero coords of (0,0)
    */
   constructor(canvas, axis, direction, zero) {
     this.canvas = canvas;

@@ -1,5 +1,5 @@
-import commonjs from 'rollup-plugin-commonjs';
-import nodeResolve from 'rollup-plugin-node-resolve';
+// import commonjs from 'rollup-plugin-commonjs';
+// import nodeResolve from 'rollup-plugin-node-resolve';
 
 export default {
   input: 'src/main.js',
@@ -8,17 +8,20 @@ export default {
     format: 'iife',
     name: 'Graph'
   },
-  plugins: [
-    nodeResolve({
-      jsnext: true,
-      main: true
-    }),
-
-    commonjs({
-      include: ["node_modules/jquery/**"],
-      namedExports: {
-        'node_modules/jquery/dist/jquery.min.js': [ 'jquery' ]
-      }
-    })
-  ]
+  watch: {
+    include: ['src/**'],
+    exclude: ['node_modules/**', 'dist/**']
+  }
+  // plugins: [
+  //   nodeResolve({
+  //     jsnext: true,
+  //     main: true
+  //   }),
+  //   commonjs({
+  //     include: ["node_modules/jquery/**"],
+  //     namedExports: {
+  //       'node_modules/jquery/dist/jquery.min.js': [ 'jquery' ]
+  //     }
+  //   })
+  // ]
 };

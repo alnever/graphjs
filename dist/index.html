@@ -31,52 +31,152 @@
             'text': 'This is X axis subscription',
             'font': '14px Arial',
             'color': '#654'
-          }
+          },
+          'type': 'categorical'
         },
         'axis_y': {
           'title': {
             'text': 'This is Y axis subscription',
             'font': '14px Arial',
             'color': '#654'
+          },
+          'type': 'continuous'
+        },
+        'options': {
+          'bars': {
+            'position':'together',
+            'width': 20
           }
         },
         'series' : [
            {
-            'type': 'linear',
-            'color': '#456',
-            'points': true,
-            'labels': 'values',
-            'width' : 3,
+            'type': 'bar',
+            'params' : {
+              'line': {
+                'color': '#811',
+                'width' : 3,
+              },
+              // 'points': {
+              //   'color': '#181',
+              //   'radius': 5,
+              // },
+              'labels': {
+                'type':'y',
+                'font': '12px Arial',
+                'color': '#121212'
+              },
+              'bars': {
+                'type': 'bars',
+                'gap': 4,
+                'outline': {
+                  'color': '#121212',
+                  'width': 1
+                },
+                'fill': {
+                  'type': 'fixed',
+                  'color': '#811'
+                },
+                // 'width': 20
+              }
+            },
             'data': [
-              {'x': -10, 'y': -11.4},
-              {'x': 0, 'y': -10},
-              {'x': 20, 'y': -7},
-              {'x': 30, 'y': -1},
-              {'x': 40, 'y': 30},
-              {'x': 50, 'y': 25},
-              {'x': 60, 'y': 14.5},
-              {'x': 70, 'y': 9},
-              {'x': 80, 'y': 3}
+              {'x': 'Russia', 'y': 30, 'color':'#777777'},
+              {'x': 'USA', 'y': 25, 'color':'#451245'},
+              {'x': 'Germany', 'y': 14.5, 'color':'#554447'},
+              {'x': 'China', 'y': -10 , 'color':'#214647'},
+              // {'x': 'Bolivia', 'y': -11.4, 'color':'#a4b545'},
+              // {'x': 'India', 'y': -7, 'color':'#554545'},
+              // {'x': 'Australia', 'y': -1, 'color':'#547293'},
+              // {'x': 'Brasilia', 'y': 9, 'color':'#a4b145'},
+              // {'x': 'Uganda', 'y': 3, 'color':'#a4b54d'}
             ]
           },
           {
-           'type': 'linear',
-           'color': '#811',
-           'points': true,
-           'labels': 'values',
-           'width' : 3,
+            'type': 'bar',
+            'params' : {
+              'line': {
+                'color': '#811',
+                'width' : 3,
+              },
+              // 'points': {
+              //   'color': '#181',
+              //   'radius': 5,
+              // },
+              'labels': {
+                'type':'y',
+                'font': '12px Arial',
+                'color': '#121212'
+              },
+              'bars': {
+                'type': 'bars',
+                'gap': 4,
+                'outline': {
+                  'color': '#121212',
+                  'width': 1
+                },
+                'fill': {
+                  'type': 'fixed',
+                  'color': '#181'
+                },
+                // 'width': 50
+              }
+            },
            'data': [
-             {'x': -5, 'y': 20},
-             {'x': 5, 'y': 12},
-             {'x': 20, 'y': 0},
-             {'x': 30, 'y': -5},
-             {'x': 40, 'y': -7},
-             {'x': 50, 'y': 12},
-             {'x': 60, 'y': 30},
-             {'x': 70, 'y': 31},
-             {'x': 80, 'y': 20}
+             // {'x': 'India', 'y': 40},
+             {'x': 'USA', 'y': 12},
+             {'x': 'Russia', 'y': 0},
+             // {'x': 'Tunisia', 'y': -5},
+             {'x': 'Israel', 'y': -7},
+             {'x': 'China', 'y': 12},
+             // {'x': 'Australia', 'y': 30},
+             {'x': 'Germany', 'y': 31},
+             {'x': 'France', 'y': 20},
+             // {'x': 'Senegal', 'y': 31},
+             // {'x': 'Uganda', 'y': 20}
            ]
-         }
+         },
+         {
+          'type': 'bar',
+          'params' : {
+            'line': {
+              'color': '#811',
+              'width' : 3,
+            },
+            // 'points': {
+            //   'color': '#181',
+            //   'radius': 5,
+            // },
+            'labels': {
+              'type':'y',
+              'font': '12px Arial',
+              'color': '#121212'
+            },
+            'bars': {
+              'type': 'bars',
+              'gap': 4,
+              'outline': {
+                'color': '#121212',
+                'width': 1
+              },
+              'fill': {
+                'type': 'fixed',
+                'color': '#249'
+              },
+              // 'width': 20
+            }
+          },
+          'data': [
+            {'x': 'Russia', 'y': 30, 'color':'#777777'},
+            {'x': 'USA', 'y': 25, 'color':'#451245'},
+            {'x': 'Germany', 'y': 14.5, 'color':'#554447'},
+            {'x': 'Bolivia', 'y': -10 , 'color':'#214647'},
+            {'x': 'China', 'y': -11.4, 'color':'#a4b545'},
+            // {'x': 'India', 'y': -7, 'color':'#554545'},
+            // {'x': 'Australia', 'y': -1, 'color':'#547293'},
+            // {'x': 'Brasilia', 'y': 9, 'color':'#a4b145'},
+            // {'x': 'Uganda', 'y': 3, 'color':'#a4b54d'}
+          ]
+        },
 
         ]
       });

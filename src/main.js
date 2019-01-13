@@ -13,9 +13,9 @@ export default class Graph {
    * constructor -
    *
    * @param  {string} id   ID of the element to insert plot into
-   * @param  {array} info  Parameters of the plot
+   * @param  {object} info  Parameters of the plot
    */
-  constructor(id, info, direction) {
+  constructor(id, info) {
     this.id = id;
     this.info = info;
   }
@@ -33,8 +33,6 @@ export default class Graph {
       .render()
       .addTitle(this.info.title)
       .addSubTitle(this.info.subtitle)
-      // .addAxisX(this.info.axis_x)
-      // .addAxisY(this.info.axis_y)
-      .addPlot(this.info.series, this.info.axis_x, this.info.axis_y);
+      .addPlot(this.info.series, this.info.axis_x, this.info.axis_y, this.info.options);
   }
 }

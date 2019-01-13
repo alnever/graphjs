@@ -9,7 +9,7 @@ export class Title {
    * constructor - create a title
    *
    * @param  {Element} canvas - parent canvas
-   * @param  {array} title    - title info
+   * @param  {object} title    - title info
    * @param  {string} direction - direction of the title - x or y
    */
   constructor(canvas, title, direction = 'x') {

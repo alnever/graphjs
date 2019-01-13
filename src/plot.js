@@ -1,7 +1,9 @@
 import { Axis } from './axis.js';
 import { Range } from './range.js';
-import { Linear } from './linear.js';
 import { Converter } from './converter.js';
+
+import { Linear } from './linear.js';
+import { BarPlot } from './bar-plot.js';
 
 export class Plot {
 
@@ -9,15 +11,19 @@ export class Plot {
    * constructor - create a plot on the canvas
    *
    * @param  {Element} canvas  parent canvas element
-   * @param  {array} series collection of plots descriptions
-   * @param  {array} axis_x x-axis parameters
-   * @param  {array} axis_y y-axis parameters
+   * @param  {object} series collection of plots descriptions
+   * @param  {object} axis_x x-axis parameters
+   * @param  {object} axis_y y-axis parameters
+   * @param  {object} global_options global options for plots
    */
-  constructor(canvas, series, axis_x, axis_y) {
+  constructor(canvas, series, axis_x, axis_y, global_options) {
     this.canvas = canvas;
     this.series = series;
     this.axis_x = axis_x;
     this.axis_y = axis_y;
+    this.x_continuous = this.axis_x.type && this.axis_x.type == "continuous";
+    this.y_continuous = this.axis_y.type && this.axis_y.type == "continuous";
+    this.globalOptions = global_options;
   }
 
 
@@ -27,9 +33,20 @@ export class Plot {
    * @return {Plot}  current instance of the plot
    */
   render() {
+
+    if (this.x_continuous) {
+      // sort series by x - for continues axis
+      this.series.map(plot => this.sortData(plot.data));
+    } else {
+      this.unifyData();
+    }
+
     // calc ranges entire the series
-    this.ranges = new Range(this.series)
-      .getRanges();
+    this.ranges = new Range(
+      this.series,
+      this.x_continuous,
+      this.y_continuous
+    ).getRanges();
 
     // calculate limits
     this.limits = {
@@ -53,13 +70,34 @@ export class Plot {
   /**
    * draw - draw a single plot from the series
    *
-   * @param  {array} plot plot description
+   * @param  {object} plot plot description
    * @return {void}
    */
   draw(plot) {
-    if (plot.type = "linear") {
-      return new Linear(this.canvas, plot, this.ranges, this.limits)
-        .render();
+    if (plot.type == "linear") {
+      return new Linear(
+        this.canvas,
+        plot,
+        this.ranges,
+        this.limits,
+        this.x_continuous,
+        this.y_continuous
+      ).render();
+    } else if (plot.type == "bar") {
+      // add options for several bar plots drawn together
+      let options = this.globalOptions.bars;
+      options.count = this.series.length;
+      options.index = this.series.indexOf(plot);
+
+      return new BarPlot(
+        this.canvas,
+        plot,
+        this.ranges,
+        this.limits,
+        this.x_continuous,
+        this.y_continuous,
+        options
+      ).render();
     }
   }
 
@@ -91,4 +129,67 @@ export class Plot {
       }).render();
     }
   }
+
+
+  /**
+   * sortData - order data in series by x axis
+   * The method changes sourse data of the plot in series
+   *
+   * @param  {array} data data for the plot
+   * @return {void}
+   */
+  sortData(data) {
+    data = data.sort(
+      (a,b) => {
+        return a.x - b.x;
+      }
+    );
+  }
+
+
+  /**
+   * unifyData - make common categorical scales for all plots
+   * in series
+   *
+   * @return {void}
+   */
+  unifyData() {
+    // get common list of categories in all series
+    let xValues = [].concat(...this.series.map(
+      plot => plot.data.map(point => point.x)
+    ));
+
+    // get just unique categories for all series
+    let categories = [ ...new Set(xValues) ];
+
+    // change data adding categories and reordering data in
+    // series 1,2 etc...
+    // ... add categories
+    categories.map(
+      value => {
+        this.series.map(
+          plot => {
+            let x = plot.data.map(point => point.x);
+            if (x.indexOf(value) < 0) {
+              plot.data.push({
+                'x': value,
+                'y': 0
+              })
+            }
+          }
+        )
+      }
+    );
+
+    // ... reorder data in series according categories
+    this.series.map(
+      plot => plot.data.sort(
+        (a,b) => {
+          return categories.indexOf(a.x) - categories.indexOf(b.x);
+        }
+      )
+    );
+    // finally: this.series are unified by x
+  }
+
 }

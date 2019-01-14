@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="container">
+      <div class="jumbotron">
+        <h1 class="display-4">GraphJS</h1>
+        <p class="lead">
+          Simple JS-library to build various graphs and plots
+        </p>
+        <hr class="my-4" />
+        <p>Simple scatter plot with one serie of data and points size set according points values</p>
+        <hr class="my-4" />
+        <p>Author : <a href="mailto:al_neverov@live.ru">Alex Neverov</a> &copy;2019</p>
+      </div>
+    </div>
+
+    <div class="container">
+      <div id="linearGraph" style="width:800px; height:600px; ">
+      </div>
+    </div>
+
+
+    <script src="graph-lib.js" charset="utf-8"></script>
+    <script type="text/javascript">
+      let g = new Graph(
+        "linearGraph",
+        {
+          'title': {
+            'text': 'Scatter plot',
+            'font': '20px Arial',
+            'color': '#456'
+          },
+          'axis_x': {
+            'title': {
+              'text': 'x-values',
+              'font': '14px Arial',
+              'color': '#654'
+            },
+            'type': 'continuous'
+          },
+          'axis_y': {
+            'title': {
+              'text': 'y-values',
+              'font': '14px Arial',
+              'color': '#654'
+            },
+            'type': 'continuous'
+          },
+          'series':[
+            {
+              'type': 'scatter',
+              'params': {
+                'points': {
+                   'color': {
+                    'type': 'fixed',
+                    'color': '#811'
+                   },
+                   'radius': {
+                     'type': 'value',
+                   },
+                },
+                'labels': {
+                  'type':'value',
+                  'font': '12px Arial',
+                  'color': '#121212'
+                },
+              },
+              'data': [
+                {'x': 1, 'y': 14, 'value': 5},
+                {'x': 2, 'y': 10, 'value': 10},
+                {'x': 3, 'y': 20, 'value': 12},
+                {'x': 4, 'y': 21, 'value': 20},
+                {'x': 5, 'y': 3, 'value': 3},
+                {'x': 6, 'y': 7, 'value': 2},
+                {'x': 7, 'y': 8, 'value': 7},
+                {'x': 1, 'y': 1, 'value': 11},
+                {'x': 2, 'y': 18, 'value': 5},
+                {'x': 3, 'y': 12, 'value': 6},
+                {'x': 7, 'y': 16.5, 'value': 11.2},
+                {'x': 2, 'y': 7.1, 'value': 3.1},
+                {'x': 3, 'y': 9.3, 'value': 4},
+                {'x': 4, 'y': 6.6, 'value': 1.2},
+                {'x': 5, 'y': 12.1, 'value': 7},
+              ]
+            },
+          ]
+        }
+      );
+      g.render();
+    </script>
+  </body>
+</html>

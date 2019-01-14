@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="container">
+      <div class="jumbotron">
+        <h1 class="display-4">GraphJS</h1>
+        <p class="lead">
+          Simple JS-library to build various graphs and plots
+        </p>
+        <hr class="my-4" />
+        <p>Bar plot with data grouped by series</p>
+        <hr class="my-4" />
+        <p>Author : <a href="mailto:al_neverov@live.ru">Alex Neverov</a> &copy;2019</p>
+      </div>
+    </div>
+
+    <div class="container">
+      <div id="linearGraph" style="width:800px; height:600px; ">
+
+      </div>
+    </div>
+
+    <script src="graph-lib.js" charset="utf-8"></script>
+    <script type="text/javascript">
+      let g = new Graph(
+        "linearGraph",
+        {
+          'title': {
+            'text': 'Bar plot',
+            'font': '20px Arial',
+            'color': '#456'
+          },
+          'subtitle': {
+            'text': 'with data grouped by series',
+            'font': '14px Arial',
+            'color': '#654'
+          },
+          'axis_x': {
+            'title': {
+              'text': 'x-values',
+              'font': '14px Arial',
+              'color': '#654'
+            },
+            'type': 'categorical'
+          },
+          'axis_y': {
+            'title': {
+              'text': 'y-values',
+              'font': '14px Arial',
+              'color': '#654'
+            },
+            'type': 'continuous'
+          },
+          'options': {
+            'bars': {
+              'position': 'separated',
+              'width': 20,
+            }
+          },
+          'series':[
+            {
+              'type': 'bar',
+              'params': {
+                'line': {
+                  'color': '#811',
+                  'width' : 3,
+                },
+                'labels': {
+                  'type':'xy',
+                  'font': '12px Arial',
+                  'color': '#121212'
+                },
+                'bars': {
+                  'type': 'bars',
+                  'gap': 4,
+                  'outline': {
+                    'color': '#811',
+                    'width': 1
+                  },
+                  'fill': {
+                    'type': 'fixed',
+                    'color': '#baa'
+                  },
+                  // 'width': 50
+                }
+              },
+              'data': [
+                {'x': 'Jan', 'y': 14},
+                {'x': 'Feb', 'y': 10},
+                {'x': 'Mar', 'y': 20},
+                {'x': 'Apr', 'y': 21},
+                {'x': 'May', 'y': -1},
+                {'x': 'Jun', 'y': -10},
+                {'x': 'Jul', 'y': -7},
+                {'x': 'Aug', 'y': 1},
+              ]
+            },
+            {
+              'type': 'bar',
+              'params': {
+                'line': {
+                  'color': '#456',
+                  'width' : 3,
+                },
+                'labels': {
+                  'type':'xy',
+                  'font': '12px Arial',
+                  'color': '#121212'
+                },
+                'bars': {
+                  'type': 'bars',
+                  'gap': 4,
+                  'outline': {
+                    'color': '#456',
+                    'width': 1
+                  },
+                  'fill': {
+                    'type': 'fixed',
+                    'color': '#aab'
+                  },
+                  // 'width': 50
+                }               },
+              'data': [
+                {'x': 'Jan', 'y': 20},
+                {'x': 'Feb', 'y': 14},
+                {'x': 'Mar', 'y': 0},
+                {'x': 'Apr', 'y': -3},
+                {'x': 'May', 'y': -10},
+                {'x': 'Jun', 'y': 1},
+                {'x': 'Jul', 'y': 19},
+                {'x': 'Aug', 'y': 3},
+              ]
+            },
+          ]
+        }
+      );
+      g.render();
+    </script>
+  </body>
+</html>

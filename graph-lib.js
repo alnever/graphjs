@@ -142,9 +142,10 @@ var Graph = (function () {
      *
      * @param  {type} series series of plots
      */
-    constructor(series, x_continuous) {
+    constructor(series, x_continuous, y_continuous) {
       this.series = series;
       this.x_continuous = x_continuous;
+      this.y_continuous = y_continuous;
     }
 
 
@@ -159,10 +160,10 @@ var Graph = (function () {
       );
 
       return {
-        'minx': Math.min(...ranges.map(point => point.minx)),
-        'maxx': Math.max(...ranges.map(point => point.maxx)),
-        'miny': Math.min(...ranges.map(point => point.miny)),
-        'maxy': Math.max(...ranges.map(point => point.maxy))
+        'minx': Math.min(...ranges.map(point => point.minx),0),
+        'maxx': Math.max(...ranges.map(point => point.maxx),0),
+        'miny': Math.min(...ranges.map(point => point.miny),0),
+        'maxy': Math.max(...ranges.map(point => point.maxy),0)
       }
     }
 
@@ -181,8 +182,12 @@ var Graph = (function () {
           'maxx': (this.x_continuous ?
             Math.max(...plot.data.map(point => point.x)) : plot.data.length
           ),
-          'miny': Math.min(...plot.data.map(point => point.y)),
-          'maxy': Math.max(...plot.data.map(point => point.y))
+          'miny': (this.y_continuous ?
+            Math.min(...plot.data.map(point => point.y)) : 0
+          ),
+          'maxy': (this.y_continuous ?
+            Math.max(...plot.data.map(point => point.y)) : plot.data.length
+          )
         }
     }
   }
@@ -219,13 +224,14 @@ var Graph = (function () {
   }
 
   class DataPoint {
-    constructor(x, y, data_x, data_y, label, color) {
+    constructor(x, y, data_x, data_y, value, label, color) {
       this.x = x;
       this.y = y;
       this.data_x = data_x;
       this.data_y = data_y;
       this.label = label;
       this.color = color;
+      this.value = value;
     }
   }
 
@@ -256,15 +262,17 @@ var Graph = (function () {
      * @return {array}  array of points in plot's coord system
      */
     convertData() {
+      console.log(this.data);
 
       return this.data.map(point => new DataPoint(
         Converter.convertX(
-          (this.x_continuous ? point.x : this.data.map(p => p.x).indexOf(point.x) + 1),
+          (this.x_continuous ? point.x : this.data.map(p => p.x).indexOf(point.x)),
           this.range, this.limits
         ),
         Converter.convertY(point.y, this.range, this.limits),
         point.x,
         point.y,
+        (point.value ? point.value : 0),
         (point.label ? point.label : ''),
         (point.color ? point.color : '#000')
       ));
@@ -278,11 +286,14 @@ var Graph = (function () {
     addDataPoints() {
       this.points.map(point => {
         this.ctx.beginPath();
-        this.ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
-        this.ctx.fillStyle = ( this.params.points.color ? this.params.points.color : "#000" );
+        this.ctx.arc(point.x, point.y,
+          this.calcPointRadius(point),
+          0, 2 * Math.PI
+        );
+        this.ctx.fillStyle = this.calcPointColor(point);
         this.ctx.fill();
         this.ctx.lineWidth = 1;
-        this.ctx.strokeStyle = ( this.params.points.color ? this.params.points.color : "#000" );
+        this.ctx.strokeStyle = this.calcPointColor(point);
         this.ctx.stroke();
       });
     }
@@ -298,9 +309,15 @@ var Graph = (function () {
         this.ctx.textAlign = "left";
         this.ctx.fillStyle = ( this.params.labels.color ? this.params.labels.color : "#000" );
         this.ctx.font = (this.params.labels.font ? this.params.labels.font : '');
-        if (this.params.labels.type == "values") {
+        if (this.params.labels.type == "xy") {
           this.ctx.fillText(
             `(${point.data_x},${point.data_y})`,
+            point.x+10,
+            point.y
+          );
+        } else if (this.params.labels.type == "value") {
+          this.ctx.fillText(
+            point.value,
             point.x+10,
             point.y
           );
@@ -324,6 +341,44 @@ var Graph = (function () {
           );
         }
       });
+    }
+
+
+    /**
+     * calcPointRadius - calculate radius of data points
+     * @param {object} point - data point
+     *
+     * @return {number}  radius of the point
+     */
+    calcPointRadius(point) {
+      if (this.params.points.radius) {
+        if (this.params.points.radius.type && this.params.points.radius.type == 'fixed') {
+          return (this.params.points.radius.value ? this.params.points.radius.value : 0);
+        } else if (this.params.points.radius.type && this.params.points.radius.type == 'y') {
+          return point.y;
+        } else if (this.params.points.radius.type && this.params.points.radius.type == 'value') {
+          return point.value;
+        } else {
+          return point.value;
+        }
+      }
+    }
+
+
+    /**
+     * calcPointColor - calculate point color
+     *
+     * @param  {object} point data point
+     * @return {string}       color value
+     */
+    calcPointColor(point) {
+      if (this.params.points.color) {
+        if (this.params.points.color.type && this.params.points.color.type == 'fixed') {
+          return (this.params.points.color.color ? this.params.points.color.color : "#000");
+        } else {
+          return point.color;
+        }
+      }
     }
   }
 
@@ -365,9 +420,6 @@ var Graph = (function () {
 
       return this;
     }
-
-
-
 
     /**
      * plotLine - plot the line
@@ -464,11 +516,11 @@ var Graph = (function () {
           this.ctx.beginPath();
           this.ctx.strokeStyle = (this.params.bars.outline && this.params.bars.outline.color ? this.params.bars.outline.color : "#000" );
           this.ctx.lineWidth = (this.params.bars.outline && this.params.bars.outline.width ? this.params.bars.outline.width : 1 );
-          this.ctx.moveTo(point.x - this.barWidth / 2, Converter.convertY(0, this.range, this.limits));
-          this.ctx.lineTo(point.x + this.barWidth / 2, Converter.convertY(0, this.range, this.limits));
-          this.ctx.lineTo(point.x + this.barWidth / 2, point.y);
-          this.ctx.lineTo(point.x - this.barWidth / 2, point.y);
-          this.ctx.lineTo(point.x - this.barWidth / 2, Converter.convertY(0, this.range, this.limits));
+          this.ctx.moveTo(point.x, Converter.convertY(0, this.range, this.limits));
+          this.ctx.lineTo(point.x + this.barWidth, Converter.convertY(0, this.range, this.limits));
+          this.ctx.lineTo(point.x + this.barWidth, point.y);
+          this.ctx.lineTo(point.x, point.y);
+          this.ctx.lineTo(point.x, Converter.convertY(0, this.range, this.limits));
           this.ctx.stroke();
           if (this.params.bars.fill && this.params.bars.fill.type && this.params.bars.fill.type == 'fixed') {
             this.ctx.fillStyle = (this.params.bars.fill.color ? this.params.bars.fill.color : "#fff");
@@ -509,10 +561,47 @@ var Graph = (function () {
        } if (this.options.position == 'together') {
          let barWidth = this.calcBarWidth();
          this.limits.maxx = this.limits.maxx - barWidth * (this.options.count - this.options.index);
-         this.limits.minx = this.limits.minx + barWidth * this.options.index - this.options.count * barWidth ;
+         this.limits.minx = this.limits.minx + barWidth * this.options.index;
        }
      }
 
+  }
+
+  class Scatter extends AbstractPlot {
+    /**
+     * constructor - create a linear plot
+     *
+     * @param  {Element} canvas parent canvas element
+     * @param  {object} plot   array of data points
+     * @param  {object} range common range for the series of plots
+     * @param  {object} limits common coords limits for the series of plots
+     * @param  {bool} x_continuous is x-axis continuous (true) or categorical (false)
+     * @param  {bool} y_continuous is y-axis continuous (true) or categorical (false)
+     */
+    constructor(canvas, plot, range, limits, x_continuous, y_continuous) {
+      super(canvas, plot, range, limits, x_continuous, y_continuous);
+    }
+
+    /**
+     * render - render a scatter plot
+     *
+     * @return {Linear}  current instance
+     */
+    render() {
+      this.points = this.convertData();
+
+      this.ctx = this.canvas.getContext("2d");
+
+      if (this.params.points) {
+        this.addDataPoints();
+      }
+
+      if (this.params.labels) {
+        this.addDataValues();
+      }
+
+      return this;
+    }
   }
 
   class Plot {
@@ -558,13 +647,24 @@ var Graph = (function () {
         this.y_continuous
       ).getRanges();
 
+      console.log(this.ranges);
+
       // calculate limits
       this.limits = {
-        'minx': (this.ranges.minx == 0 ? 50 : 60),
+        'minx': (this.x_continuous && this.ranges.minx == 0 ? 50 : 60),
         'maxx': this.canvas.width - 60,
-        'miny': (this.ranges.miny == 0 ? this.canvas.height - 50 : this.canvas.height - 60),
+        'miny': (this.y_continuous  && this.ranges.miny == 0 ? this.canvas.height - 50 : this.canvas.height - 60),
         'maxy': 60
       };
+
+      this.axis_limits = {
+        'minx': (this.x_continuous ? this.limits.minx : 50),
+        'maxx': this.canvas.width - 60,
+        'miny': (this.y_continuous ? this.limits.miny : this.canvas.height - 50),
+        'maxy': 60
+      };
+
+      console.log(this);
 
       // dwaw asix x and y
       this.addAxisX();
@@ -608,6 +708,15 @@ var Graph = (function () {
           this.y_continuous,
           options
         ).render();
+      } else if (plot.type == "scatter") {
+        return new Scatter(
+          this.canvas,
+          plot,
+          this.ranges,
+          this.limits,
+          this.x_continuous,
+          this.y_continuous
+        ).render();
       }
     }
 
@@ -619,8 +728,8 @@ var Graph = (function () {
     addAxisX() {
       if (this.axis_x) {
         new Axis(this.canvas, this.axis_x, "x", {
-          'x': Converter.convertX(0, this.ranges, this.limits),
-          'y': Converter.convertY(0, this.ranges, this.limits)
+          'x': Converter.convertX(0, this.ranges, this.axis_limits),
+          'y': Converter.convertY(0, this.ranges, this.axis_limits)
         }).render();
       }
     }
@@ -632,10 +741,11 @@ var Graph = (function () {
      * @return {void}
      */
     addAxisY() {
+      console.log(Converter.convertX(0, this.ranges, this.axis_limits));
       if (this.axis_y) {
         new Axis(this.canvas, this.axis_y, "y", {
-          'x': Converter.convertX(0, this.ranges, this.limits),
-          'y': Converter.convertY(0, this.ranges, this.limits)
+          'x': Converter.convertX(0, this.ranges, this.axis_limits),
+          'y': Converter.convertY(0, this.ranges, this.axis_limits)
         }).render();
       }
     }

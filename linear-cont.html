@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="container">
+      <div class="jumbotron">
+        <h1 class="display-4">GraphJS</h1>
+        <p class="lead">
+          Simple JS-library to build various graphs and plots
+        </p>
+        <hr class="my-4" />
+        <p>Linear plot with series of data with a continuous x-axis</p>
+        <hr class="my-4" />
+        <p>Author : <a href="mailto:al_neverov@live.ru">Alex Neverov</a> &copy;2019</p>
+      </div>
+    </div>
+
+    <div class="container">
+      <div id="linearGraph" style="width:800px; height:600px; ">
+      </div>
+    </div>
+
+
+    <script src="graph-lib.js" charset="utf-8"></script>
+    <script type="text/javascript">
+      let g = new Graph(
+        "linearGraph",
+        {
+          'title': {
+            'text': 'Linear plots with continuous axis',
+            'font': '20px Arial',
+            'color': '#456'
+          },
+          'axis_x': {
+            'title': {
+              'text': 'x-values',
+              'font': '14px Arial',
+              'color': '#654'
+            },
+            'type': 'continuous'
+          },
+          'axis_y': {
+            'title': {
+              'text': 'y-values',
+              'font': '14px Arial',
+              'color': '#654'
+            },
+            'type': 'continuous'
+          },
+          'series':[
+            {
+              'type': 'linear',
+              'params': {
+                'line': {
+                  'color': '#811',
+                  'width' : 3,
+                },
+                'points': {
+                   'color': {
+                    'type': 'fixed',
+                    'color': '#811'
+                   },
+                   'radius': {
+                     'type': 'fixed',
+                     'value': 5
+                   },
+                },
+                'labels': {
+                  'type':'xy',
+                  'font': '12px Arial',
+                  'color': '#121212'
+                },
+              },
+              'data': [
+                {'x': -10, 'y': 14},
+                {'x': 0, 'y': 10},
+                {'x': 10, 'y': 20},
+                {'x': 20, 'y': 21},
+                {'x': 30, 'y': 14},
+              ]
+            },
+            {
+              'type': 'linear',
+              'params': {
+                'line': {
+                  'color': '#456',
+                  'width' : 3,
+                },
+                'points': {
+                   'color': {
+                    'type': 'fixed',
+                    'color': '#456'
+                   },
+                   'radius': {
+                     'type': 'fixed',
+                     'value': 5
+                   },
+                },
+                'labels': {
+                  'type':'xy',
+                  'font': '12px Arial',
+                  'color': '#121212'
+                },
+              },
+              'data': [
+                {'x': -10, 'y': 20},
+                {'x': -5, 'y': 14},
+                {'x': 0, 'y': 7},
+                {'x': 5, 'y': -3},
+                {'x': 10, 'y': -10},
+                {'x': 20, 'y': 1},
+                {'x': 30, 'y': 19},
+              ]
+            },
+          ]
+        }
+      );
+      g.render();
+    </script>
+  </body>
+</html>

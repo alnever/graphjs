@@ -79,11 +79,11 @@ export class BarPlot extends AbstractPlot {
         this.ctx.beginPath();
         this.ctx.strokeStyle = (this.params.bars.outline && this.params.bars.outline.color ? this.params.bars.outline.color : "#000" );
         this.ctx.lineWidth = (this.params.bars.outline && this.params.bars.outline.width ? this.params.bars.outline.width : 1 );
-        this.ctx.moveTo(point.x - this.barWidth / 2, Converter.convertY(0, this.range, this.limits));
-        this.ctx.lineTo(point.x + this.barWidth / 2, Converter.convertY(0, this.range, this.limits));
-        this.ctx.lineTo(point.x + this.barWidth / 2, point.y);
-        this.ctx.lineTo(point.x - this.barWidth / 2, point.y);
-        this.ctx.lineTo(point.x - this.barWidth / 2, Converter.convertY(0, this.range, this.limits));
+        this.ctx.moveTo(point.x, Converter.convertY(0, this.range, this.limits));
+        this.ctx.lineTo(point.x + this.barWidth, Converter.convertY(0, this.range, this.limits));
+        this.ctx.lineTo(point.x + this.barWidth, point.y);
+        this.ctx.lineTo(point.x, point.y);
+        this.ctx.lineTo(point.x, Converter.convertY(0, this.range, this.limits));
         this.ctx.stroke();
         if (this.params.bars.fill && this.params.bars.fill.type && this.params.bars.fill.type == 'fixed') {
           this.ctx.fillStyle = (this.params.bars.fill.color ? this.params.bars.fill.color : "#fff");
@@ -125,7 +125,7 @@ export class BarPlot extends AbstractPlot {
        let barWidth = this.calcBarWidth();
        let shift
        this.limits.maxx = this.limits.maxx - barWidth * (this.options.count - this.options.index);
-       this.limits.minx = this.limits.minx + barWidth * this.options.index - this.options.count * barWidth ;
+       this.limits.minx = this.limits.minx + barWidth * this.options.index;
      }
    }
 

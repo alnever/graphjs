@@ -4,6 +4,7 @@ import { Converter } from './converter.js';
 
 import { Linear } from './linear.js';
 import { BarPlot } from './bar-plot.js';
+import { Scatter } from './scatter.js';
 
 export class Plot {
 
@@ -48,13 +49,24 @@ export class Plot {
       this.y_continuous
     ).getRanges();
 
+    console.log(this.ranges);
+
     // calculate limits
     this.limits = {
-      'minx': (this.ranges.minx == 0 ? 50 : 60),
+      'minx': (this.x_continuous && this.ranges.minx == 0 ? 50 : 60),
       'maxx': this.canvas.width - 60,
-      'miny': (this.ranges.miny == 0 ? this.canvas.height - 50 : this.canvas.height - 60),
+      'miny': (this.y_continuous  && this.ranges.miny == 0 ? this.canvas.height - 50 : this.canvas.height - 60),
       'maxy': 60
     }
+
+    this.axis_limits = {
+      'minx': (this.x_continuous ? this.limits.minx : 50),
+      'maxx': this.canvas.width - 60,
+      'miny': (this.y_continuous ? this.limits.miny : this.canvas.height - 50),
+      'maxy': 60
+    }
+
+    console.log(this);
 
     // dwaw asix x and y
     this.addAxisX();
@@ -98,6 +110,15 @@ export class Plot {
         this.y_continuous,
         options
       ).render();
+    } else if (plot.type == "scatter") {
+      return new Scatter(
+        this.canvas,
+        plot,
+        this.ranges,
+        this.limits,
+        this.x_continuous,
+        this.y_continuous
+      ).render();
     }
   }
 
@@ -109,8 +130,8 @@ export class Plot {
   addAxisX() {
     if (this.axis_x) {
       new Axis(this.canvas, this.axis_x, "x", {
-        'x': Converter.convertX(0, this.ranges, this.limits),
-        'y': Converter.convertY(0, this.ranges, this.limits)
+        'x': Converter.convertX(0, this.ranges, this.axis_limits),
+        'y': Converter.convertY(0, this.ranges, this.axis_limits)
       }).render();
     }
   }
@@ -122,10 +143,11 @@ export class Plot {
    * @return {void}
    */
   addAxisY() {
+    console.log(Converter.convertX(0, this.ranges, this.axis_limits));
     if (this.axis_y) {
       new Axis(this.canvas, this.axis_y, "y", {
-        'x': Converter.convertX(0, this.ranges, this.limits),
-        'y': Converter.convertY(0, this.ranges, this.limits)
+        'x': Converter.convertX(0, this.ranges, this.axis_limits),
+        'y': Converter.convertY(0, this.ranges, this.axis_limits)
       }).render();
     }
   }

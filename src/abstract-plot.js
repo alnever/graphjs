@@ -28,15 +28,17 @@ export class AbstractPlot {
    * @return {array}  array of points in plot's coord system
    */
   convertData() {
+    console.log(this.data);
 
     return this.data.map(point => new DataPoint(
       Converter.convertX(
-        (this.x_continuous ? point.x : this.data.map(p => p.x).indexOf(point.x) + 1),
+        (this.x_continuous ? point.x : this.data.map(p => p.x).indexOf(point.x)),
         this.range, this.limits
       ),
       Converter.convertY(point.y, this.range, this.limits),
       point.x,
       point.y,
+      (point.value ? point.value : 0),
       (point.label ? point.label : ''),
       (point.color ? point.color : '#000')
     ));
@@ -50,11 +52,14 @@ export class AbstractPlot {
   addDataPoints() {
     this.points.map(point => {
       this.ctx.beginPath();
-      this.ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
-      this.ctx.fillStyle = ( this.params.points.color ? this.params.points.color : "#000" );
+      this.ctx.arc(point.x, point.y,
+        this.calcPointRadius(point),
+        0, 2 * Math.PI
+      );
+      this.ctx.fillStyle = this.calcPointColor(point);
       this.ctx.fill();
       this.ctx.lineWidth = 1;
-      this.ctx.strokeStyle = ( this.params.points.color ? this.params.points.color : "#000" );
+      this.ctx.strokeStyle = this.calcPointColor(point);
       this.ctx.stroke();
     });
   }
@@ -70,9 +75,15 @@ export class AbstractPlot {
       this.ctx.textAlign = "left";
       this.ctx.fillStyle = ( this.params.labels.color ? this.params.labels.color : "#000" );
       this.ctx.font = (this.params.labels.font ? this.params.labels.font : '');
-      if (this.params.labels.type == "values") {
+      if (this.params.labels.type == "xy") {
         this.ctx.fillText(
           `(${point.data_x},${point.data_y})`,
+          point.x+10,
+          point.y
+        );
+      } else if (this.params.labels.type == "value") {
+        this.ctx.fillText(
+          point.value,
           point.x+10,
           point.y
         );
@@ -96,5 +107,43 @@ export class AbstractPlot {
         );
       }
     });
+  }
+
+
+  /**
+   * calcPointRadius - calculate radius of data points
+   * @param {object} point - data point
+   *
+   * @return {number}  radius of the point
+   */
+  calcPointRadius(point) {
+    if (this.params.points.radius) {
+      if (this.params.points.radius.type && this.params.points.radius.type == 'fixed') {
+        return (this.params.points.radius.value ? this.params.points.radius.value : 0);
+      } else if (this.params.points.radius.type && this.params.points.radius.type == 'y') {
+        return point.y;
+      } else if (this.params.points.radius.type && this.params.points.radius.type == 'value') {
+        return point.value;
+      } else {
+        return point.value;
+      }
+    }
+  }
+
+
+  /**
+   * calcPointColor - calculate point color
+   *
+   * @param  {object} point data point
+   * @return {string}       color value
+   */
+  calcPointColor(point) {
+    if (this.params.points.color) {
+      if (this.params.points.color.type && this.params.points.color.type == 'fixed') {
+        return (this.params.points.color.color ? this.params.points.color.color : "#000");
+      } else {
+        return point.color;
+      }
+    }
   }
 }

@@ -41,9 +41,6 @@ export class Linear extends AbstractPlot {
     return this;
   }
 
-
-
-
   /**
    * plotLine - plot the line
    *

@@ -9,9 +9,10 @@ export class Range {
    *
    * @param  {type} series series of plots
    */
-  constructor(series, x_continuous) {
+  constructor(series, x_continuous, y_continuous) {
     this.series = series;
     this.x_continuous = x_continuous;
+    this.y_continuous = y_continuous;
   }
 
 
@@ -26,10 +27,10 @@ export class Range {
     );
 
     return {
-      'minx': Math.min(...ranges.map(point => point.minx)),
-      'maxx': Math.max(...ranges.map(point => point.maxx)),
-      'miny': Math.min(...ranges.map(point => point.miny)),
-      'maxy': Math.max(...ranges.map(point => point.maxy))
+      'minx': Math.min(...ranges.map(point => point.minx),0),
+      'maxx': Math.max(...ranges.map(point => point.maxx),0),
+      'miny': Math.min(...ranges.map(point => point.miny),0),
+      'maxy': Math.max(...ranges.map(point => point.maxy),0)
     }
   }
 
@@ -48,8 +49,12 @@ export class Range {
         'maxx': (this.x_continuous ?
           Math.max(...plot.data.map(point => point.x)) : plot.data.length
         ),
-        'miny': Math.min(...plot.data.map(point => point.y)),
-        'maxy': Math.max(...plot.data.map(point => point.y))
+        'miny': (this.y_continuous ?
+          Math.min(...plot.data.map(point => point.y)) : 0
+        ),
+        'maxy': (this.y_continuous ?
+          Math.max(...plot.data.map(point => point.y)) : plot.data.length
+        )
       }
   }
 }

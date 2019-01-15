@@ -25,6 +25,8 @@ export class Plot {
     this.x_continuous = this.axis_x.type && this.axis_x.type == "continuous";
     this.y_continuous = this.axis_y.type && this.axis_y.type == "continuous";
     this.globalOptions = global_options;
+    this.xCategories = [];
+    this.yCategories = [];
   }
 
 
@@ -39,7 +41,7 @@ export class Plot {
       // sort series by x - for continues axis
       this.series.map(plot => this.sortData(plot.data));
     } else {
-      this.unifyData();
+      this.unifyDataX();
     }
 
     // calc ranges entire the series
@@ -48,8 +50,6 @@ export class Plot {
       this.x_continuous,
       this.y_continuous
     ).getRanges();
-
-    console.log(this.ranges);
 
     // calculate limits
     this.limits = {
@@ -65,8 +65,6 @@ export class Plot {
       'miny': (this.y_continuous ? this.limits.miny : this.canvas.height - 50),
       'maxy': 60
     }
-
-    console.log(this);
 
     // dwaw asix x and y
     this.addAxisX();
@@ -129,10 +127,14 @@ export class Plot {
    */
   addAxisX() {
     if (this.axis_x) {
-      new Axis(this.canvas, this.axis_x, "x", {
-        'x': Converter.convertX(0, this.ranges, this.axis_limits),
-        'y': Converter.convertY(0, this.ranges, this.axis_limits)
-      }).render();
+      new Axis(this.canvas,
+        this.axis_x,
+        "x",
+        this.ranges,
+        this.limits,
+        this.axis_limits,
+        this.xCategories
+      ).render();
     }
   }
 
@@ -143,12 +145,15 @@ export class Plot {
    * @return {void}
    */
   addAxisY() {
-    console.log(Converter.convertX(0, this.ranges, this.axis_limits));
     if (this.axis_y) {
-      new Axis(this.canvas, this.axis_y, "y", {
-        'x': Converter.convertX(0, this.ranges, this.axis_limits),
-        'y': Converter.convertY(0, this.ranges, this.axis_limits)
-      }).render();
+      new Axis(this.canvas,
+        this.axis_y,
+        "y",
+        this.ranges,
+        this.limits,
+        this.axis_limits,
+        this.yCategories
+      ).render();
     }
   }
 
@@ -175,19 +180,19 @@ export class Plot {
    *
    * @return {void}
    */
-  unifyData() {
+  unifyDataX() {
     // get common list of categories in all series
     let xValues = [].concat(...this.series.map(
       plot => plot.data.map(point => point.x)
     ));
 
     // get just unique categories for all series
-    let categories = [ ...new Set(xValues) ];
+    this.xCategories = [ ...new Set(xValues) ];
 
     // change data adding categories and reordering data in
     // series 1,2 etc...
     // ... add categories
-    categories.map(
+    this.xCategories.map(
       value => {
         this.series.map(
           plot => {
@@ -207,7 +212,7 @@ export class Plot {
     this.series.map(
       plot => plot.data.sort(
         (a,b) => {
-          return categories.indexOf(a.x) - categories.indexOf(b.x);
+          return this.xCategories.indexOf(a.x) - this.xCategories.indexOf(b.x);
         }
       )
     );

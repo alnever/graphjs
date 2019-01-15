@@ -28,8 +28,6 @@ export class AbstractPlot {
    * @return {array}  array of points in plot's coord system
    */
   convertData() {
-    console.log(this.data);
-
     return this.data.map(point => new DataPoint(
       Converter.convertX(
         (this.x_continuous ? point.x : this.data.map(p => p.x).indexOf(point.x)),

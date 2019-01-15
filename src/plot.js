@@ -44,6 +44,13 @@ export class Plot {
       this.unifyDataX();
     }
 
+    // plots reordering - linear plots - last
+
+    this.series = [
+      ...this.series.filter(plot => plot.type != "linear"),
+      ...this.series.filter(plot => plot.type == "linear")
+    ];
+
     // calc ranges entire the series
     this.ranges = new Range(
       this.series,

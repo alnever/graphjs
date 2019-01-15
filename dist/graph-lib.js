@@ -408,6 +408,7 @@ var Graph = (function () {
       this.label = label;
       this.color = color;
       this.value = value;
+      this.radius = 0;
     }
   }
 
@@ -458,10 +459,25 @@ var Graph = (function () {
      * @return {void}
      */
     addDataPoints() {
+
+      this.points.map(point => point.radius = this.calcPointRadius(point));
+
+      let max_radius = Math.max(...this.points.map(point => point.radius));
+      let radius_limit = Math.min(
+        (this.limits.maxx - this.limits.minx) * .1,
+        (this.limits.miny - this.limits.maxy) * .1
+      );
+
+      if (max_radius > radius_limit) {
+        this.points.map(point => {
+          point.radius = point.radius / max_radius * radius_limit;
+        });
+      }
+
       this.points.map(point => {
         this.ctx.beginPath();
         this.ctx.arc(point.x, point.y,
-          this.calcPointRadius(point),
+          point.radius,
           0, 2 * Math.PI
         );
         this.ctx.fillStyle = this.calcPointColor(point);
@@ -525,17 +541,17 @@ var Graph = (function () {
      * @return {number}  radius of the point
      */
     calcPointRadius(point) {
+      let radius = point.data_y;
       if (this.params.points.radius) {
         if (this.params.points.radius.type && this.params.points.radius.type == 'fixed') {
-          return (this.params.points.radius.value ? this.params.points.radius.value : 0);
+          radius = (this.params.points.radius.value ? this.params.points.radius.value : 0);
         } else if (this.params.points.radius.type && this.params.points.radius.type == 'y') {
-          return point.y;
+          radius = point.data_y;
         } else if (this.params.points.radius.type && this.params.points.radius.type == 'value') {
-          return point.value;
-        } else {
-          return point.value;
+          radius =  point.value;
         }
       }
+      return radius;
     }
 
 

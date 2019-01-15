@@ -7,5 +7,6 @@ export class DataPoint {
     this.label = label;
     this.color = color;
     this.value = value;
+    this.radius = 0;
   }
 }

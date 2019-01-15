@@ -214,7 +214,6 @@ export class Axis {
    * @return {void}
    */
   drawTicksLabels() {
-    console.log(this.ticks);
     this.ticks.map(
       tick => this.addTickLabel(
         tick.label,
@@ -234,7 +233,6 @@ export class Axis {
    * @return {void}
    */
   addTickLabel(label, x, y) {
-    console.log(label, x, y);
     this.ctx.font = (this.axis.ticks.font ? this.axis.ticks.font : "");
     this.ctx.fillStyle = (this.axis.ticks.color ? this.axis.ticks.color: "#000");
     this.ctx.textAlign = "center";

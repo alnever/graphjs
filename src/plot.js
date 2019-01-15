@@ -66,12 +66,47 @@ export class Plot {
       'maxy': 60
     }
 
-    // dwaw asix x and y
-    this.addAxisX();
-    this.addAxisY();
+    // add options for several bar plots drawn together
+    if (this.globalOptions && this.globalOptions.bars) {
+      this.barOptions = this.globalOptions.bars;
+      this.barOptions.count = this.series.filter(plot => plot.type == "bar").length;
+    } else {
+      this.barOptions = {};
+    }
 
     // draw plots
     this.plots = this.series.map(plot => this.draw(plot));
+
+    // draw asix x and y
+    if (this.barOptions) {
+      if (this.barOptions.position && this.barOptions.position == "together") {
+        let shift = this.barOptions.count * this.barOptions.width / 2;
+        this.limits.minx += shift;
+        this.limits.maxx -= shift;
+        this.addAxisX();
+        this.addAxisY();
+      } else if (this.barOptions.position && this.barOptions.position == "separated") {
+        this.series.filter(plot => plot.type == "bar")
+          .map(plot => {
+            let part_width = (this.limits.maxx - this.limits.minx) / this.barOptions.count;
+            let limits = {...this.limits};
+            let plotIdx = this.series.filter(plot => plot.type == "bar").indexOf(plot);
+            limits.minx = this.limits.minx + part_width * plotIdx + this.barOptions.width / 2;
+            limits.maxx = limits.minx + part_width;
+            console.log(limits);
+            this.addAxisX(limits);
+          });
+        this.addAxisY();
+      } else {
+        this.limits.minx += this.barOptions.width / 2;
+        this.limits.maxx += this.barOptions.width / 2;
+        this.addAxisX();
+        this.addAxisY();
+      }
+    } else {
+      this.addAxisX();
+      this.addAxisY();
+    }
 
     return this;
   }
@@ -94,10 +129,7 @@ export class Plot {
         this.y_continuous
       ).render();
     } else if (plot.type == "bar") {
-      // add options for several bar plots drawn together
-      let options = this.globalOptions.bars;
-      options.count = this.series.length;
-      options.index = this.series.indexOf(plot);
+      this.barOptions.index = this.series.filter(plot => plot.type == "bar").indexOf(plot);
 
       return new BarPlot(
         this.canvas,
@@ -106,7 +138,7 @@ export class Plot {
         this.limits,
         this.x_continuous,
         this.y_continuous,
-        options
+        this.barOptions
       ).render();
     } else if (plot.type == "scatter") {
       return new Scatter(
@@ -122,16 +154,16 @@ export class Plot {
 
   /**
    * addAxisX - add x-axis to the plot
-   *
+   * @param  {object} limits - partial limits for axis
    * @return {void}
    */
-  addAxisX() {
+  addAxisX(limits = null) {
     if (this.axis_x) {
       new Axis(this.canvas,
         this.axis_x,
         "x",
         this.ranges,
-        this.limits,
+        (limits == null ? this.limits : limits),
         this.axis_limits,
         this.xCategories
       ).render();

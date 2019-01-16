@@ -77,7 +77,9 @@ export class BarPlot extends AbstractPlot {
         this.ctx.lineTo(point.x, point.y);
         this.ctx.stroke();
       } else {
+        this.ctx.save();
         this.ctx.beginPath();
+        this.ctx.globalAlpha = this.calcBarAlpha();
         this.ctx.strokeStyle = (this.params.bars.outline && this.params.bars.outline.color ? this.params.bars.outline.color : "#000" );
         this.ctx.lineWidth = (this.params.bars.outline && this.params.bars.outline.width ? this.params.bars.outline.width : 1 );
         this.ctx.moveTo(point.x, Converter.convertY(0, this.range, this.limits));
@@ -92,6 +94,7 @@ export class BarPlot extends AbstractPlot {
           this.ctx.fillStyle = point.color;
         }
         this.ctx.fill();
+        this.ctx.restore();
       }
    }
 
@@ -110,6 +113,24 @@ export class BarPlot extends AbstractPlot {
        return (this.limits.maxx - this.limits.minx) / this.data.length - (this.params.bars.gap ? this.params.bars.gap : 0)
      }
    }
+
+
+   /**
+    * calcBarAlpha - calculate alpha level for bar plot
+    *
+    * @return {number}  alpha value
+    */
+   calcBarAlpha() {
+     if (this.options.alpha) {
+       return this.options.alpha;
+     } else if (this.params.bars.alpha) {
+       return this.params.bars.alpha;
+     } else {
+       return 1;
+     }
+   }
+
+
 
 
    /**

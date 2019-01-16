@@ -17,7 +17,8 @@ export class BarPlot extends AbstractPlot {
    constructor(canvas, plot, range, limits, x_continuous, y_continuous, global_options) {
      super(canvas, plot, range, limits, x_continuous, y_continuous);
 
-     this.limits = {...limits};
+     // this.limits = {...limits}; // unfortunally, it doesn't work in Enge
+     this.limits = Object.assign({}, limits);
      this.options = global_options;
    }
 

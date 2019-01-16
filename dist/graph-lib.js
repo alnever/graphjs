@@ -644,7 +644,8 @@ var Graph = (function () {
      constructor(canvas, plot, range, limits, x_continuous, y_continuous, global_options) {
        super(canvas, plot, range, limits, x_continuous, y_continuous);
 
-       this.limits = {...limits};
+       // this.limits = {...limits};
+       this.limits = Object.assign({}, limits);
        this.options = global_options;
      }
 
@@ -884,7 +885,8 @@ var Graph = (function () {
           this.series.filter(plot => plot.type == "bar")
             .map(plot => {
               let part_width = (this.limits.maxx - this.limits.minx) / this.barOptions.count;
-              let limits = {...this.limits};
+              // let limits = {...this.limits};
+              let limits = Object.assign({},this.limits);
               let plotIdx = this.series.filter(plot => plot.type == "bar").indexOf(plot);
               limits.minx = this.limits.minx + part_width * plotIdx + this.barOptions.width / 2;
               limits.maxx = limits.minx + part_width;

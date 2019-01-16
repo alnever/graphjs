@@ -1,3 +1,5 @@
 node_modules/*
+babel/*
 
 *.json
+babel.config.js

@@ -96,7 +96,8 @@ export class Plot {
         this.series.filter(plot => plot.type == "bar")
           .map(plot => {
             let part_width = (this.limits.maxx - this.limits.minx) / this.barOptions.count;
-            let limits = {...this.limits};
+            // let limits = {...this.limits}; // unfortunally, it doesn't work in Enge
+            let limits = Object.assign({},this.limits);
             let plotIdx = this.series.filter(plot => plot.type == "bar").indexOf(plot);
             limits.minx = this.limits.minx + part_width * plotIdx + this.barOptions.width / 2;
             limits.maxx = limits.minx + part_width;

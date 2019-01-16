@@ -64,16 +64,28 @@ export class AbstractPlot {
     }
 
     this.points.map(point => {
+      this.ctx.save();
       this.ctx.beginPath();
       this.ctx.arc(point.x, point.y,
         point.radius,
         0, 2 * Math.PI
       );
       this.ctx.fillStyle = this.calcPointColor(point);
+      this.ctx.lineWidth = (
+        this.params.points
+          && this.params.points.outline
+          && this.params.points.outline.width ?
+        this.params.points.outline.width : 1 );
+
+      this.ctx.strokeStyle = (this.params.points
+          && this.params.points.outline
+          && this.params.points.outline.color ?
+        this.params.points.outline.color : '#000');
+
+      this.ctx.globalAlpha = (this.params.points && this.params.points.alpha ? this.params.points.alpha : 1);
       this.ctx.fill();
-      this.ctx.lineWidth = 1;
-      this.ctx.strokeStyle = this.calcPointColor(point);
       this.ctx.stroke();
+      this.ctx.restore();
     });
   }
 
@@ -84,39 +96,42 @@ export class AbstractPlot {
    * @return {void}
    */
   addDataValues() {
+
     this.points.map(point => {
+      let labPoint = this.calcLabelPosition(point);
+
       this.ctx.textAlign = "left";
       this.ctx.fillStyle = ( this.params.labels.color ? this.params.labels.color : "#000" );
       this.ctx.font = (this.params.labels.font ? this.params.labels.font : '');
       if (this.params.labels.type == "xy") {
         this.ctx.fillText(
           `(${point.data_x},${point.data_y})`,
-          point.x+10,
-          point.y
+          labPoint.x,
+          labPoint.y
         );
       } else if (this.params.labels.type == "value") {
         this.ctx.fillText(
           point.value,
-          point.x+10,
-          point.y
+          labPoint.x,
+          labPoint.y
         );
       } else if (this.params.labels.type == "x") {
         this.ctx.fillText(
           point.data_x,
-          point.x+10,
-          point.y
+          labPoint.x,
+          labPoint.y
         );
       } else if (this.params.labels.type == "y") {
         this.ctx.fillText(
           point.data_y,
-          point.x+10,
-          point.y
+          labPoint.x,
+          labPoint.y
         );
       } else if (this.params.labels.type == "label") {
         this.ctx.fillText(
           point.label,
-          point.x+10,
-          point.y
+          labPoint.x,
+          labPoint.y
         );
       }
     });
@@ -158,5 +173,38 @@ export class AbstractPlot {
         return point.color;
       }
     }
+  }
+
+
+  /**
+   * calcLabelPosition - calc position of label
+   *
+   * @param  {object} point current point coords
+   * @return {object}         position of the label
+   */
+  calcLabelPosition(point) {
+    let position = Object.assign({}, point);
+    if (this.params.labels && this.params.labels.position) {
+      switch (this.params.labels.position) {
+        case ("left") : {
+          position.x -= 5;
+          break;
+        }
+        case ("right") : {
+          position.x += 5;
+          break;
+        }
+        case ("top") : {
+          position.y -= 5;
+          break;
+        }
+        case ("botton") : {
+          position.y += 5;
+          break;
+        }
+      }
+    }
+
+    return position;
   }
 }
